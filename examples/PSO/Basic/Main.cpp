@@ -2,8 +2,18 @@
 using namespace std;
 #include <cstdlib>
 
-#include "../lib/PSOSwarm.h"
+#include "../../../lib/PSOSwarm.h"
+#include "../../../lib/PSOParticleTemplate.h"
+#include "../../../lib/PSOSwarmTemplate.h"
+
+/** YOUR REPRESENTATION OBJECT **/
 #include "RealNumber.h"
+
+template class PSOParticle<RealNumber>; 
+template class PSOSwarm<RealNumber>; 
+
+/*********************************/
+
 
 typedef float (RealNumber::*fnRealNumber)(RealNumber &r);
 typedef void (RealNumber::*fnpRealNumber)(RealNumber &r);

@@ -5,7 +5,7 @@ CFLAGS=-c -Wall
 #Ejecutable
 BIN=RealNumber.bin
 INC=-I/lib
-SRC=Main.cpp RealNumber.cpp RealNumberSwarm.cpp RealNumberParticle.cpp
+SRC=Main.cpp RealNumber.cpp
 OBJ=$(SRC:.cpp=.o)
 
 all: $(BIN)
