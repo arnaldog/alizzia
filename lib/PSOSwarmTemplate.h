@@ -9,6 +9,12 @@
 #ifndef PSOSwarmTemplate_H
 #define	PSOSwarmTemplate_H
 
+#ifdef _OPENMP 
+	#include <omp.h> 
+#else 
+	#define omp_get_thread_num() 0 
+#endif
+
 #include "PSOSwarm.h"
 
 /*
@@ -167,11 +173,18 @@ template <class T> void PSOSwarm<T>::updatePSOParticleVelocity(PSOParticle<T> &P
 template <class T> void PSOSwarm<T>::initialize(){
 
 	//cout << "PSOSwarm::initialize(): inicializando particulas..." << endl;
-
+	int i;
 
 	//inicializar cada particula de la poblacion
-	for(unsigned int i=0; i < this->population.size(); i++){
+	#pragma omp parallel for private(i)
+	for(i=0; i < this->population.size(); i++){
 
+		int tid;
+		#pragma omp parallel private(tid) 
+		{ 
+			tid = omp_get_thread_num(); 
+			printf("<%d>\n", tid); 
+		} 
 		//cout << "PSOSwarm::initialize(): inicializando la particula: " << i << endl;
 
 		PSOParticle<T> &p = this->population[i];
