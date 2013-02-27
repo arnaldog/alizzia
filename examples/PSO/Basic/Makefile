@@ -9,7 +9,7 @@ FLAGS=-fopenmp
 SRC=Main.cpp RealNumber.cpp
 OBJ=$(SRC:.cpp=.o)
 
-all: $(OBJ)
+all:
 	$(CC)  -o $(BIN) $(FLAGS) $(SRC) -lm
 
 clean:

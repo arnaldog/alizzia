@@ -21,7 +21,7 @@ typedef void (RealNumber::*fnpRealNumber)(RealNumber &r);
 
 int main(){
 
-	PSOSwarm<RealNumber> psoSwarm = PSOSwarm<RealNumber>(10, 1, 9999999);
+	PSOSwarm<RealNumber> psoSwarm = PSOSwarm<RealNumber>(1000, 5000, 9999999);
 
 	fnRealNumber of = &RealNumber::fitnessFunction;
 	fnpRealNumber f_x_0 = &RealNumber::initRandomPosition;
