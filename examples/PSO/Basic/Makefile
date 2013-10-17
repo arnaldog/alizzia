@@ -5,13 +5,12 @@ CFLAGS=-c -Wall
 #Ejecutable
 BIN=RealNumber.bin
 INC=-I/lib
+FLAGS=-fopenmp
 SRC=Main.cpp RealNumber.cpp
 OBJ=$(SRC:.cpp=.o)
 
-all: $(BIN)
-
-$(BIN): $(OBJ)
-	$(CC) $(OBJ) -o $(BIN) -lm
+all:
+	$(CC)  -o $(BIN) $(FLAGS) $(SRC) -lm
 
 clean:
 	rm -rf $(BIN) $(OBJ) 

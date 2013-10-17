@@ -9,6 +9,12 @@
 #ifndef PSOSwarmTemplate_H
 #define	PSOSwarmTemplate_H
 
+#ifdef _OPENMP 
+	#include <omp.h> 
+#else 
+	#define omp_get_thread_num() 0 
+#endif
+
 #include "PSOSwarm.h"
 
 /*
@@ -19,9 +25,11 @@ template <class T> PSOSwarm<T>::PSOSwarm(){
 
 template <class T> PSOSwarm<T>::PSOSwarm(int size, int iterations, float fitness){
 
+	/*
 	cout << "PSOSwarm size: " << size << endl;
 	cout << "PSOSwarm iterations: " << iterations << endl;
 	cout << "PSOSwarm fitness: " << fitness << endl;
+	*/
 	
 	this->size = size;
 	this->iterations = iterations;
@@ -167,12 +175,14 @@ template <class T> void PSOSwarm<T>::updatePSOParticleVelocity(PSOParticle<T> &P
 template <class T> void PSOSwarm<T>::initialize(){
 
 	//cout << "PSOSwarm::initialize(): inicializando particulas..." << endl;
+	int i;
+	int n;
 
+	n = this->population.size();
 
 	//inicializar cada particula de la poblacion
-	for(unsigned int i=0; i < this->population.size(); i++){
-
-		//cout << "PSOSwarm::initialize(): inicializando la particula: " << i << endl;
+	#pragma omp parallel for private(i)
+	for(i=0; i < n; i++){
 
 		PSOParticle<T> &p = this->population[i];
 
@@ -181,16 +191,8 @@ template <class T> void PSOSwarm<T>::initialize(){
 		T velocity = T();
 		float fitness;
 
-		/* PSOParticle inictialization of position and velocity */
-		//cout << "PSOSwarm::initialize(): PRE evaluateInitPosition..." << endl;
 		this->evaluateInitPosition(position);
-		//cout << "PSOSwarm::initialize(): POST evaluateInitPosition..." << endl;
-
-		//cout << "PSOSwarm::initialize(): PRE evaluateInitVelocity..." << endl;
 		this->evaluateInitVelocity(velocity);
-		//cout << "PSOSwarm::initialize(): POST evaluateInitVelocity..." << endl;
-
-		/* Fitness evaluation*/
 		fitness = this->evaluateFitness(position);
 
 		/* PSOParticle position, velocity and fitness setting*/
@@ -202,21 +204,15 @@ template <class T> void PSOSwarm<T>::initialize(){
 		p.setBestVelocity(velocity);
 		p.setBestFitness(fitness);
 
-		//imprimir posicion
-		//!position;
-
-		//cout << "PSOSwarm::initialize(): particula " << i << ", fitness: "<< p.getFitness() << endl;
-
-		//debug para informe CSV
-
-		//cout << "PSOSwarm::initialize(): data:" << endl;
-		//cout << p.toString() << endl;
 
 		//actualizar la mejor solucion conocida
 		if(fitness < this->fitness) {
 			//actualizar la mejor solucion de la poblacion
-			this->setFitness(fitness);
-			this->bestPSOParticleIndex = i;
+			#pragma omp critical
+			{
+				this->setFitness(fitness);
+				this->bestPSOParticleIndex = i;
+			}
 		}
 	}
 
@@ -226,27 +222,31 @@ template <class T> void PSOSwarm<T>::initialize(){
 
 template <class T> void PSOSwarm<T>::iterate() {
 	//criterio de parada: numero de iteraciones.
-	int iteration = 0;
+	int i, j;
+	int iterations = this->iterations;
+	int population_size = this->population.size();
 
-	while (iteration < this->iterations)
-	{
+	PSOParticle<T> p= PSOParticle<T>();
+	T position = T();
+	T bestVelocity = T();
+	float PSOParticleFitness;
+
+	for(j=0; j < iterations; j++){
 		// para cada partícula, hacer:
-		for (unsigned int i = 0; i < this->population.size(); i++) {
 
-			cout << "PSOSwarm::iterate(): iterando sobre particula " << i << endl;
+		#pragma omp parallel for private(position, bestVelocity, PSOParticleFitness, p, i) 
+		for (i = 0; i < population_size; i++) {
 
-			PSOParticle<T> &p = this->population[i];
+//			cout << "PSOSwarm::iterate(): iterando sobre particula " << i << endl;
 
-			T position = T();
+			p = this->population[i];
+
 			position = p.getPosition();
-
-			T bestVelocity = T();
 			bestVelocity = p.getBestVelocity();
 
 			this->updatePSOParticleVelocity(p);
 			p.updatePosition();
 
-			float PSOParticleFitness;
 			PSOParticleFitness = this->evaluateFitness(position);
 			p.setFitness(PSOParticleFitness);
 
@@ -260,9 +260,10 @@ template <class T> void PSOSwarm<T>::iterate() {
 			//if (f(pi) < f(g)) update the PSOSwarm's best known position:
 			//g ← pi
 			if (PSOParticleFitness < this->fitness) {
-				cout << "PSOSwarm::iterate: Updating best PSOParticle:" << i << endl;
-				this->setFitness(PSOParticleFitness);
-				this->setBestPSOParticleIndex(i);
+					cout << "PSOSwarm::iterate: Updating best PSOParticle:" << i << endl;
+					cout << "PSOSwarm::iterate: with fitness: " << PSOParticleFitness << endl;
+					this->setFitness(PSOParticleFitness);
+					this->setBestPSOParticleIndex(i);
 			}
 
 			//debug
@@ -275,7 +276,6 @@ template <class T> void PSOSwarm<T>::iterate() {
 		//cout << " mejor particula: " << this->getBestPSOParticleIndex();
 		//cout << " mejor fitness: " << this->fitness << endl;
 
-		iteration++;
 	}
 }
 
